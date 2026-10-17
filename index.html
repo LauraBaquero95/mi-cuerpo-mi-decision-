@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<!-- viewport-fit=cover: la página se dibuja bajo las barras del sistema en móvil; se compensa con env(safe-area-*) -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi cuerpo, mis decisiones · Cartilla de autonomía y consentimiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Fraunces (títulos, carácter humano) + Atkinson Hyperlegible (cuerpo, diseñada para máxima legibilidad) -->
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap" rel="stylesheet">
+<style>
+/* ===== 1. TOKENS DE COLOR: todo el color vive en variables para poder cambiar de tema ===== */
+:root{
+  --bg:#f5f3fb; --ink:#241a3d; --muted:#5a4f75; --card:#ffffff; --line:#d9d2ee;
+  --accent:#5b34c9; --accent-ink:#ffffff; --mint:#0f8f7a; --sun:#b87900; --rose:#c7285f;
+  --glow:rgba(91,52,201,.16);
+  /* Paleta por capítulo (versión clara): violeta, turquesa, magenta, ámbar, azul, verde */
+  --c1:#5b34c9;--c2:#0b7f6e;--c3:#c0245c;--c4:#a35f00;--c5:#1c5fd1;--c6:#2f7d1f;
+  --f-body:"Atkinson Hyperlegible",system-ui,sans-serif; --f-head:"Fraunces",Georgia,serif;
+  --fs:1.08rem; /* tamaño base; los botones A+/A- lo modifican */
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+/* Modo oscuro automático, salvo que el visor fuerce el claro */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#150f26;--ink:#f1ecfb;--muted:#bdb2d8;--card:#211a38;--line:#3a2f5c;--accent:#a68bff;--accent-ink:#150f26;--mint:#5fe0c4;--sun:#ffcf5a;--rose:#ff7fa8;--glow:rgba(166,139,255,.2)}
+}
+:root[data-theme="dark"]{--bg:#150f26;--ink:#f1ecfb;--muted:#bdb2d8;--card:#211a38;--line:#3a2f5c;--accent:#a68bff;--accent-ink:#150f26;--mint:#5fe0c4;--sun:#ffcf5a;--rose:#ff7fa8;--glow:rgba(166,139,255,.2)}
+/* Alto contraste (opción de accesibilidad): prevalece sobre cualquier tema */
+:root[data-contrast="high"]{--bg:#000;--ink:#fff;--muted:#fff;--card:#000;--line:#fff;--accent:#ffd400;--accent-ink:#000;--mint:#00ffc8;--sun:#ffd400;--rose:#ff9ec0;--glow:transparent}
+
+/* ===== 2. BASE ===== */
+html{scroll-behavior:smooth;scroll-padding-top:5rem}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:var(--fs)/1.65 var(--f-body);overflow-x:hidden}
+h1,h2,h3{font-family:var(--f-head);line-height:1.12;margin:0 0 .5em}
+h1{font-size:clamp(2.4rem,7vw,4.6rem);font-weight:800}
+h2{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800}
+h3{font-size:1.25rem;font-weight:600}
+p{max-width:68ch;margin:0 0 1em}
+a{color:var(--accent)}
+/* Foco visible para quien navega con teclado */
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:62rem;margin:0 auto;padding:0 1.25rem}
+section{padding:4.5rem 0 1rem}
+.lead{font-size:1.2em;color:var(--muted)}
+
+/* ===== 3. BARRA DE ACCESIBILIDAD Y PROGRESO ===== */
+.bar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.bar .wrap{display:flex;gap:.5rem;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-block:.5rem}
+.bar b{font-family:var(--f-head)}
+.tools{display:flex;gap:.4rem;flex-wrap:wrap}
+.tools button{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:.3rem .8rem;min-height:2.5rem}
+.tools button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#prog{height:4px;background:var(--accent);width:0;transition:width .2s}
+
+/* ===== 4. HÉROE: el "espacio personal" que la persona puede ajustar ===== */
+.hero{padding-top:3rem;display:grid;gap:2rem;grid-template-columns:1fr;align-items:center}
+@media(min-width:56rem){.hero{grid-template-columns:1.1fr 1fr}}
+.stage{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:1rem;text-align:center}
+.stage svg{width:100%;max-width:380px;height:auto}
+.stage input[type=range]{width:90%;accent-color:var(--accent);height:2rem}
+#bubble{fill:var(--glow);stroke:var(--accent);stroke-width:3;stroke-dasharray:8 8;transition:r .3s ease;animation:spin 30s linear infinite;transform-origin:200px 200px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#bubbleMsg{min-height:4.2em;font-weight:700}
+/* Única animación "de entrada": el título se revela una sola vez */
+h1{animation:rise .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+/* ===== 5. COMPONENTES INTERACTIVOS ===== */
+.panel{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:1.25rem}
+.btn{border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:.6rem 1.1rem;font-weight:700;min-height:2.75rem;transition:transform .15s}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:transparent;color:var(--accent)}
+/* Semáforo de límites */
+.sem{display:grid;gap:.9rem;margin-top:1rem}
+.sem .row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;border-bottom:1px dashed var(--line);padding-bottom:.8rem}
+.sem .opts{display:flex;gap:.4rem}
+.dot{border:3px solid var(--line);background:var(--card);border-radius:12px;padding:.35rem .8rem;min-height:2.75rem;font-weight:700}
+.dot[data-c=v][aria-pressed=true]{background:var(--mint);color:#000;border-color:var(--mint)}
+.dot[data-c=a][aria-pressed=true]{background:var(--sun);color:#000;border-color:var(--sun)}
+.dot[data-c=r][aria-pressed=true]{background:var(--rose);color:#000;border-color:var(--rose)}
+#card{margin-top:1rem;border-left:8px solid var(--accent);min-height:3rem}
+/* Acordeón del consentimiento */
+.acc{display:grid;gap:.7rem}
+.acc button.h{width:100%;text-align:left;display:flex;justify-content:space-between;gap:1rem;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:1rem 1.2rem;font-weight:700;font-size:1.1em}
+.acc button.h[aria-expanded=true]{border-color:var(--accent)}
+.acc .b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease}
+.acc .b>div{overflow:hidden}
+.acc .b.open{grid-template-rows:1fr}
+.acc .b p{padding:.8rem 1.2rem 0}
+/* Frases para comunicar (se leen en voz alta) */
+.say{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.8rem}
+.say button{border:2px solid var(--line);background:var(--card);border-radius:18px;padding:1rem;text-align:center;font-weight:700;transition:transform .2s,border-color .2s}
+.say button:hover{transform:translateY(-3px);border-color:var(--accent)}
+.say span{display:block;font-size:2rem}
+.say button.on{background:var(--accent);color:var(--accent-ink)}
+/* Mitos y realidades: tarjeta que gira */
+.flips{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+.flip{perspective:900px;border:0;background:none;padding:0;min-height:12rem;text-align:left}
+.flip i{position:relative;display:block;height:100%;min-height:12rem;transform-style:preserve-3d;transition:transform .6s}
+.flip[aria-pressed=true] i{transform:rotateY(180deg)}
+.flip em{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;padding:1.2rem;font-style:normal;display:flex;flex-direction:column;justify-content:center;gap:.4rem;border:2px solid var(--line)}
+.flip .f{background:var(--card)}
+.flip .k{background:var(--accent);color:var(--accent-ink);transform:rotateY(180deg)}
+.two{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))}
+.two ul{padding-left:1.2rem;margin:.5rem 0 0}.two li{margin-bottom:.4rem}
+/* Quiz */
+.q .ops{display:grid;gap:.5rem;margin:.8rem 0}
+.q .ops button{text-align:left;border:2px solid var(--line);background:var(--card);border-radius:12px;padding:.7rem 1rem;min-height:2.75rem}
+.q .ops button.ok{border-color:var(--mint);background:color-mix(in srgb,var(--mint) 25%,var(--card))}
+.q .ops button.no{border-color:var(--rose);background:color-mix(in srgb,var(--rose) 22%,var(--card))}
+.fb{font-weight:700;min-height:1.6em}
+footer{padding:3rem 0 4rem;color:var(--muted);font-size:.95em}
+
+/* ===== COLOR POR CAPÍTULO: cada sección toma su propio acento (claro, oscuro y alto contraste) ===== */
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--c1:#a68bff;--c2:#5fe0c4;--c3:#ff7fa8;--c4:#ffcf5a;--c5:#7fb2ff;--c6:#9be36b}}
+:root[data-theme="dark"]{--c1:#a68bff;--c2:#5fe0c4;--c3:#ff7fa8;--c4:#ffcf5a;--c5:#7fb2ff;--c6:#9be36b}
+:root[data-contrast="high"]{--c1:#ffd400;--c2:#ffd400;--c3:#ffd400;--c4:#ffd400;--c5:#ffd400;--c6:#ffd400}
+#cuerpo,#etica{--accent:var(--c1)}#limites,#salud{--accent:var(--c2)}#consent,#senas,#ayuda{--accent:var(--c3)}#decir,#mitos{--accent:var(--c4)}#respeto,#digital{--accent:var(--c5)}#relaciones,#quiz{--accent:var(--c6)}
+/* Degradado de transición: arriba parte del color de la sección anterior (--prev) y se funde con el propio en 10rem */
+section{background:linear-gradient(180deg,color-mix(in srgb,var(--prev,var(--accent)) 9%,var(--bg)) 0,color-mix(in srgb,var(--accent) 9%,var(--bg)) 10rem);padding-bottom:3.5rem}
+section h2{color:var(--accent)}
+.panel{border-top:6px solid var(--accent)}
+/* Lectura en voz alta: resalta el bloque que se está leyendo */
+.leyendo{background:color-mix(in srgb,var(--accent) 22%,transparent);outline:3px solid var(--accent);outline-offset:4px;border-radius:6px}
+/* Tarjeta visual a pantalla completa (para mostrar a otra persona) */
+.big{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;color:var(--accent-ink);font-family:var(--f-head);cursor:pointer}
+.big[hidden]{display:none}
+
+/* ===== SECCIÓN ANTERIOR (para el degradado) y acentos de capítulos nuevos ===== */
+#limites{--prev:var(--c1)}#consent{--prev:var(--c2)}#decir{--prev:var(--c3)}#respeto{--prev:var(--c4)}#relaciones{--prev:var(--c5)}#salud{--prev:var(--c6)}#digital{--prev:var(--c2)}#senas{--prev:var(--c5)}#mitos{--prev:var(--c3)}#etica{--prev:var(--c4)}#quiz{--prev:var(--c1)}
+#compromiso{--accent:var(--c2);--prev:var(--c6)}#glosario{--accent:var(--c5);--prev:var(--c2)}#ayuda{--prev:var(--c5)}
+html{scroll-padding-top:8rem}
+
+/* ===== PORTADA VIVA: fondo con degradado que fluye + burbujas que suben ===== */
+#cuerpo{position:relative;overflow:hidden;background:linear-gradient(135deg,color-mix(in srgb,var(--c1) 18%,var(--bg)),color-mix(in srgb,var(--c5) 15%,var(--bg)),color-mix(in srgb,var(--c2) 15%,var(--bg)));background-size:300% 300%;animation:flow 20s ease-in-out infinite}
+@keyframes flow{50%{background-position:100% 50%}}
+#cuerpo .wrap{position:relative;z-index:1}
+/* Franja final que funde la portada con el color de la sección siguiente */
+#cuerpo::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8rem;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--c1) 9%,var(--bg)));pointer-events:none}
+.bubbles{position:absolute;inset:0;pointer-events:none}
+.bubbles span{position:absolute;bottom:-12rem;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.75),color-mix(in srgb,var(--b) 30%,transparent) 65%);border:1px solid color-mix(in srgb,var(--b) 45%,transparent);animation:subir linear infinite}
+@keyframes subir{to{transform:translate(var(--dx),calc(-1 * var(--h)))}}
+
+/* ===== ESPACIOS PARA IMÁGENES: si el archivo existe se muestra; si no, aparece la guía ===== */
+.slot{position:relative;aspect-ratio:16/7;margin:1.5rem 0;border-radius:24px;overflow:hidden;border:2px solid var(--line)}
+.slot img{width:100%;height:100%;object-fit:cover;display:block}
+.slot .ph{display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;text-align:center;padding:1rem;border:3px dashed var(--accent);border-radius:22px;background:color-mix(in srgb,var(--accent) 8%,var(--card))}
+.slot.vacio .ph{display:flex}.slot.vacio img{display:none}
+.slot .ph b{font-family:var(--f-head);color:var(--accent);font-size:1.2rem}
+.slot .ph code{font-size:.85rem;color:var(--muted)}
+@media(max-width:40rem){.slot{aspect-ratio:4/3}}
+
+/* ===== ÍNDICE DE CAPÍTULOS, VOLVER ARRIBA, COMPROMISO Y CONFETI ===== */
+.idx{display:flex;gap:.4rem;overflow-x:auto;padding:.3rem 1.25rem .5rem;scrollbar-width:thin}
+.idx a{white-space:nowrap;text-decoration:none;color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:.2rem .8rem;font-size:.9rem}
+.idx a.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.up{position:fixed;right:max(1rem,env(safe-area-inset-right));bottom:max(1rem,env(safe-area-inset-bottom));z-index:30;width:3rem;height:3rem;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font-size:1.4rem;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.up[hidden]{display:none}
+.chk{display:flex;gap:.8rem;align-items:flex-start;padding:.6rem 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.chk input{width:1.6rem;height:1.6rem;accent-color:var(--accent);flex:none}
+.cf{position:fixed;top:-14px;width:10px;height:14px;z-index:60;pointer-events:none;animation:caer 2s ease-in forwards}
+@keyframes caer{to{transform:translateY(105vh) rotate(540deg)}}
+
+/* Respeta a quien prefiere menos movimiento */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<!-- Barra fija: herramientas de accesibilidad + progreso de lectura -->
+<div class="bar" role="region" aria-label="Herramientas de accesibilidad">
+  <div class="wrap">
+    <b>Mi cuerpo, mis decisiones</b>
+    <div class="tools">
+      <button id="fMas" aria-label="Aumentar tamaño del texto">A+</button>
+      <button id="fMenos" aria-label="Disminuir tamaño del texto">A−</button>
+      <button id="hc" aria-pressed="false">Alto contraste</button>
+      <button id="rd" aria-pressed="false">👆 Leer al tocar</button>
+      <button id="lt">▶ Leer todo</button>
+      <button id="ls" hidden>⏹ Detener</button>
+      <button id="lv">Velocidad 1×</button>
+    </div>
+  </div>
+  <nav id="idx" class="idx" aria-label="Capítulos"></nav>
+  <div id="prog" aria-hidden="true"></div>
+</div>
+
+<main>
+<!-- ===== CAPÍTULO: MI CUERPO ES MÍO ===== -->
+<section id="cuerpo"><div class="bubbles" id="bubbles" aria-hidden="true"></div><div class="wrap hero">
+  <div>
+    <h1>Mi cuerpo es mío. Yo decido.</h1>
+    <p class="lead">Una cartilla para conocer tus límites, expresar lo que quieres y lo que no, entender el consentimiento y respetar las decisiones de los demás. La sexualidad es parte de la vida de todas las personas, también de las personas con discapacidad.</p>
+    <p>Empieza por aquí: mueve la barra y descubre tu espacio personal.</p>
+  </div>
+  <div class="stage">
+    <!-- Figura simple + burbuja cuyo radio controla el deslizador -->
+    <svg viewBox="0 0 400 400" role="img" aria-label="Figura humana rodeada por una burbuja de espacio personal">
+      <circle id="bubble" cx="200" cy="200" r="120"/>
+      <circle cx="200" cy="165" r="26" fill="var(--accent)"/>
+      <path d="M150 262 q0-52 50-52 q50 0 50 52 v14 h-100z" fill="var(--accent)"/>
+    </svg>
+    <label for="rng"><b>Tu espacio personal</b></label><br>
+    <input id="rng" type="range" min="50" max="190" value="120" aria-describedby="bubbleMsg">
+    <p id="bubbleMsg" aria-live="polite"></p>
+  </div>
+</div>
+<!-- IMAGEN 1: portada. Coloca el archivo en la carpeta imagenes/ -->
+<div class="wrap"><div class="slot" data-src="portada.jpg.jpg" data-alt="Ilustración de personas diversas, con y sin discapacidad, juntas y sonriendo" data-idea="Ilustración cálida de un grupo diverso: persona en silla de ruedas, persona con bastón, persona sorda usando lengua de señas y persona con síndrome de Down, conversando o abrazadas."></div></div>
+</section>
+
+<!-- ===== CAPÍTULO: LÍMITES ===== -->
+<section id="limites"><div class="wrap">
+  <h2>Conoce tus límites</h2>
+  <p class="lead">Un límite es una línea que tú pones para sentirte seguro o segura. Puede cambiar con las personas, los lugares y los días. Y siempre es válido.</p>
+  <!-- IMAGEN 2 -->
+  <div class="slot" data-src="limites.jpg.jpg" data-alt="Persona trazando un círculo de espacio personal a su alrededor" data-idea="Persona que dibuja un círculo a su alrededor o sostiene un semáforo verde, amarillo y rojo."></div>
+  <div class="panel">
+    <h3>Mi semáforo</h3>
+    <p>Para cada situación, elige: <b>verde</b> (me gusta), <b>amarillo</b> (depende, pregúntame antes) o <b>rojo</b> (no quiero).</p>
+    <div class="sem" id="sem"></div>
+    <div class="panel" id="card" aria-live="polite">Elige una opción para armar tu tarjeta de límites.</div>
+  </div>
+</div></section>
+
+<!-- ===== CAPÍTULO: CONSENTIMIENTO ===== -->
+<section id="consent"><div class="wrap">
+  <h2>El consentimiento: un sí que se elige</h2>
+  <p class="lead">Consentir es estar de acuerdo con claridad. Sin presión, sin engaños y con toda la información. Ábrelas una a una.</p>
+  <!-- IMAGEN 3 -->
+  <div class="slot" data-src="consentimiento.jpg.jpg" data-alt="Dos personas conversando de frente, una pregunta y la otra responde con claridad" data-idea="Dos personas conversando de frente: una pregunta y la otra responde con claridad, quizá con tarjetas de pictogramas de sí y no."></div>
+  <div class="acc" id="acc"></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: EXPRESAR DECISIONES ===== -->
+<section id="decir"><div class="wrap">
+  <h2>Cada persona se comunica a su manera</h2>
+  <p class="lead">Hablar, señar, escribir, señalar un pictograma, usar un tablero o un dispositivo, cambiar de gesto: todas son formas válidas de decidir. Toca una tarjeta para oírla.</p>
+  <div class="say" id="say"></div>
+  <p style="margin-top:1rem">Quien te acompaña debe aprender tu manera de decir sí, no y pausa, y respetarla cada vez. Un silencio o una cara de miedo <b>nunca</b> son un sí.</p>
+</div></section>
+
+<!-- ===== CAPÍTULO: RESPETAR A LOS DEMÁS ===== -->
+<section id="respeto"><div class="wrap">
+  <h2>Respetar también es decidir</h2>
+  <div class="two">
+    <div class="panel"><h3>Si tú decides</h3><ul>
+      <li>Puedes decir no, cambiar de idea y parar en cualquier momento.</li>
+      <li>Puedes pedir apoyo para entender, nunca para que otra persona decida por ti.</li>
+      <li>Puedes elegir con quién estar, o no estar con nadie.</li></ul></div>
+    <div class="panel"><h3>Si acompañas o convives</h3><ul>
+      <li>Pregunta antes de tocar el cuerpo, la silla, la prótesis o las pertenencias.</li>
+      <li>Explica con claridad y da tiempo para responder.</li>
+      <li>Si recibes un no, la respuesta es parar. Sin insistir ni castigar.</li>
+      <li>Garantiza privacidad en el baño, el aseo y la intimidad.</li></ul></div>
+  </div>
+</div></section>
+
+<!-- ===== CAPÍTULO: RELACIONES ===== -->
+<section id="relaciones"><div class="wrap">
+  <h2>Relaciones, afecto y noviazgo</h2>
+  <p class="lead">Querer y ser querido es un derecho. Tener pareja, no tenerla o cambiar de pareja es una decisión tuya, no de tu familia ni de quien te cuida.</p>
+  <div class="two">
+    <div class="panel"><h3>Señales de una relación sana</h3><ul><li>Te escuchan y respetan tus “no”.</li><li>Puedes ver a tus amistades y a tu familia.</li><li>Tu celular, tu dinero y tus medicinas son tuyos.</li><li>Hay confianza, privacidad y buen trato.</li></ul></div>
+    <div class="panel"><h3>Señales de alerta</h3><ul><li>Controla tus mensajes, tu dinero o tus citas.</li><li>Te aísla o te amenaza con dejarte sin apoyo.</li><li>Te toca sin permiso o te presiona.</li><li>Te hace sentir culpa o carga por tu discapacidad.</li></ul></div>
+  </div>
+  <p style="margin-top:1rem">La diversidad también se respeta: las personas con discapacidad pueden ser heterosexuales, gais, lesbianas, bisexuales, trans o de otras identidades, y merecen el mismo trato digno.</p>
+</div></section>
+
+<!-- ===== CAPÍTULO: SALUD SEXUAL, HIGIENE E INTIMIDAD ===== -->
+<section id="salud"><div class="wrap">
+  <h2>Salud sexual, higiene e intimidad</h2>
+  <p class="lead">Cuidar tu cuerpo es cuidar tu bienestar. Tienes derecho a información clara y a servicios de salud accesibles.</p>
+  <!-- IMAGEN 4 -->
+  <div class="slot" data-src="salud.jpg.png" data-alt="Consulta médica accesible, el profesional habla directamente a la persona" data-idea="Consulta médica accesible: el profesional habla directamente a la persona usuaria; se ve rampa, camilla o silla accesible."></div>
+  <div class="acc" id="sal"></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: INTERNET Y REDES ===== -->
+<section id="digital"><div class="wrap">
+  <h2>Internet y redes sociales</h2>
+  <p class="lead">Tu cuerpo y tu intimidad también se protegen en el mundo digital.</p>
+  <div class="acc" id="dig"></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: LENGUA DE SEÑAS Y COMUNICACIÓN VISUAL ===== -->
+<section id="senas"><div class="wrap">
+  <h2>Lengua de señas y comunicación visual</h2>
+  <p class="lead">La lengua de señas colombiana (LSC) es una lengua completa, con su propia gramática. La información sobre cuerpo, consentimiento y sexualidad debe llegar también a las personas sordas y sordociegas, en su lengua.</p>
+  <!-- IMAGEN 5 -->
+  <div class="slot" data-src="lsc.jpg.jpg" data-alt="Persona comunicándose en lengua de señas con un intérprete profesional" data-idea="Persona comunicándose en lengua de señas colombiana con un intérprete profesional, en un ambiente respetuoso."></div>
+  <div class="acc" id="sen"></div>
+  <div class="panel" style="margin-top:1.2rem"><h3>Tarjetas visuales para mostrar</h3><p>Toca una tarjeta y se abre en pantalla completa para mostrarla a otra persona. Tócala de nuevo o pulsa Escape para cerrarla.</p><div class="say" id="vis"></div></div>
+  <div class="panel" style="margin-top:1.2rem"><h3>Aprende señas con quienes las enseñan</h3><p>Esta cartilla no reemplaza videos ni cursos de LSC. Para aprender las señas oficiales, consulta al <a href="https://www.insor.gov.co" target="_blank" rel="noopener">Instituto Nacional para Sordos (INSOR)</a> y a las organizaciones de la comunidad sorda.</p></div>
+  <div id="big" class="big" role="dialog" aria-modal="true" aria-label="Tarjeta visual" hidden tabindex="-1"></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: MITOS Y REALIDADES ===== -->
+<section id="mitos"><div class="wrap">
+  <h2>Mitos y realidades</h2>
+  <p class="lead">Toca cada tarjeta para darle la vuelta.</p>
+  <div class="flips" id="flips"></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: ÉTICA E INCLUSIÓN ===== -->
+<section id="etica"><div class="wrap">
+  <h2>Ética, derechos e inclusión</h2>
+  <p class="lead">La inclusión significa que nadie decide por otra persona sobre su cuerpo, su afecto o su sexualidad.</p>
+  <div class="acc" id="eth"></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: QUIZ ===== -->
+<section id="quiz"><div class="wrap">
+  <h2>Pon a prueba lo aprendido</h2>
+  <div class="panel q" id="quizBox"></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: COMPROMISO ===== -->
+<section id="compromiso"><div class="wrap">
+  <h2>Mi compromiso</h2>
+  <p class="lead">Marca los compromisos que quieres asumir. Son para ti y para las personas que te rodean.</p>
+  <div class="panel"><div id="comp"></div><p id="compMsg" class="fb" aria-live="polite"></p></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: GLOSARIO ===== -->
+<section id="glosario"><div class="wrap">
+  <h2>Glosario en lenguaje claro</h2>
+  <div class="acc" id="glo"></div>
+</div></section>
+
+<!-- ===== CAPÍTULO: AYUDA ===== -->
+<section id="ayuda"><div class="wrap">
+  <h2>Si algo no está bien, pide ayuda</h2>
+  <!-- IMAGEN 6 -->
+  <div class="slot" data-src="apoyo.png" data-alt="Red de apoyo: personas de confianza acompañando" data-idea="Red de apoyo: manos que se unen o personas de confianza acompañando. También puedes poner logos de las entidades de ayuda."></div>
+  <div class="panel">
+    <p>Contarlo no es tu culpa. Puedes hablar con una persona de confianza, un profesional de salud o una autoridad. En Colombia:</p>
+    <ul>
+      <li><b>123</b>: emergencias.</li>
+      <li><b>122</b>: denuncia ante la Fiscalía.</li>
+      <li><b>155</b>: orientación a mujeres víctimas de violencia.</li>
+      <li><b>141</b>: ICBF, protección de niñas, niños y adolescentes.</li>
+    </ul>
+    <p>Verifica los números vigentes en las páginas oficiales de cada entidad.</p>
+  </div>
+</div></section>
+</main>
+<button id="up" class="up" aria-label="Volver arriba" hidden>↑</button>
+<footer><div class="wrap">Material educativo de carácter informativo. No sustituye la orientación de profesionales de la salud, el derecho o la psicología.</div></footer>
+
+<script>
+/* ===== DATOS: el contenido está separado de la lógica para poder editarlo fácilmente ===== */
+const SITUACIONES = ["Que me abracen","Que me ayuden con el baño o el aseo","Que toquen mi silla, bastón o prótesis sin avisar","Que lean mis mensajes o mi celular","Que me tomen fotos","Que me hablen de sexualidad"];
+const CONSENT = [
+ ["Libre","Se da sin presión, miedo, chantaje ni premios. Si dependes de alguien para tu cuidado, esa persona debe tener un cuidado extra: tu sí no puede ser el precio de recibir apoyo."],
+ ["Reversible","Puedes cambiar de idea cuando quieras, incluso en medio de una situación. Decir sí una vez no significa decir sí siempre."],
+ ["Informado","Tienes derecho a entender qué va a pasar, en lenguaje claro, con apoyos visuales o con el tiempo que necesites."],
+ ["Entusiasta","Un sí es una elección que se quiere, no algo que se resiste, se tolera o se acepta por cansancio."],
+ ["Específico","Un sí para una cosa no es un sí para todo. Cada situación, persona y momento se consultan por separado."]
+];
+const FRASES = [["✋","Pausa"],["🚫","No quiero"],["✅","Sí quiero"],["🤔","No entiendo, explícame"],["🧑‍🤝‍🧑","Quiero estar con alguien de confianza"],["🔒","Necesito privacidad"]];
+const MITOS = [
+ ["“Las personas con discapacidad no tienen deseos ni vida sexual.”","Falso. Todas las personas sienten afecto, deseo y curiosidad. Tienen derecho a información y a decidir."],
+ ["“Hablarles de sexualidad les hace daño.”","Falso. La educación sexual accesible previene abusos y fortalece la capacidad de decir no."],
+ ["“Alguien más debe decidir por ellas.”","Falso. Se prestan apoyos para decidir, no se sustituye la voluntad de la persona."],
+ ["“Quien no dice no, está diciendo sí.”","Falso. Sin un sí claro y libre, no hay consentimiento."],
+ ["“Las personas con discapacidad no pueden tener pareja, casarse ni formar una familia.”","Falso. Tienen derecho a formar relaciones y familia, con los apoyos que necesiten (Convención de la ONU, art. 23)."],
+ ["“El abuso siempre lo comete un desconocido.”","Falso. Con frecuencia lo cometen personas cercanas o de confianza. Por eso es importante reconocer las señales de alerta y pedir ayuda."]
+];
+const ETICA = [
+ ["Autonomía y dignidad","Cada persona es dueña de su cuerpo. El apoyo se ofrece para ampliar la decisión, nunca para quitarla."],
+ ["Igualdad y no discriminación","El derecho a la intimidad, a la afectividad y a la información sexual es el mismo para todas las personas."],
+ ["Protección sin sobreprotección","Proteger del abuso es un deber. Prohibirlo todo por miedo también vulnera derechos."],
+ ["Apoyos y accesibilidad","Información en lectura fácil, lengua de señas, braille, pictogramas y tiempos flexibles son parte de la inclusión."],
+ ["Marco legal de referencia","La Convención sobre los Derechos de las Personas con Discapacidad (ONU) reconoce, entre otros, los derechos a la protección contra la violencia y el abuso (art. 16), a formar relaciones y familia (art. 23) y a la salud sexual y reproductiva (art. 25). En Colombia, la Ley 1618 de 2013 y la Ley 1996 de 2019 reconocen la capacidad legal y el sistema de apoyos para decidir."]
+];
+const QUIZ = [
+ ["Una persona se queda callada y no se mueve. ¿Hay consentimiento?",["Sí, no se opuso","No, el silencio no es un sí","Depende de quién pregunte"],1,"El silencio, el miedo o la inmovilidad nunca equivalen a un sí."],
+ ["Dijiste sí ayer. Hoy no quieres. ¿Puedes cambiar de idea?",["Sí, siempre","No, ya aceptaste","Solo si otra persona lo permite"],0,"El consentimiento es reversible en cualquier momento."],
+ ["Tu cuidador te dice que te ayudará más si aceptas algo. ¿Es consentimiento libre?",["Sí","No, hay presión","Solo si no te molesta"],1,"El consentimiento debe ser libre: sin chantaje ni condiciones."],
+ ["¿Qué hacer cuando alguien dice “pausa” o “no”?",["Insistir con suavidad","Preguntar por qué","Parar y respetar"],2,"Parar y respetar es la única respuesta correcta."],
+ ["Una persona sorda necesita una consulta de salud sexual. ¿Quién debe interpretar?",["Un familiar","Un intérprete profesional","Quien esté disponible"],1,"Un intérprete profesional garantiza confidencialidad y que la persona se exprese con libertad."],
+ ["Alguien te pide una foto íntima y promete no mostrarla. ¿Tienes que enviarla?",["Sí, si es tu pareja","No, nadie puede obligarte","Solo si insiste"],1,"Nadie puede obligarte, y una imagen enviada puede circular sin control."]
+];
+
+/* ===== UTILIDADES ===== */
+const $ = (s,r=document)=>r.querySelector(s);
+const el = (t,props={},html="")=>Object.assign(document.createElement(t),props,{innerHTML:html});
+
+/* ===== VOZ: lectura en voz alta con la API nativa del navegador ===== */
+let leer = false;
+function hablar(txt){
+  try{ if(!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt); u.lang="es-CO"; speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ===== HERRAMIENTAS DE ACCESIBILIDAD ===== */
+let fs = 1.08;
+$("#fMas").onclick = ()=>{ fs=Math.min(1.6,fs+.1); document.documentElement.style.setProperty("--fs",fs+"rem"); };
+$("#fMenos").onclick = ()=>{ fs=Math.max(.95,fs-.1); document.documentElement.style.setProperty("--fs",fs+"rem"); };
+$("#hc").onclick = e=>{ const on = e.currentTarget.getAttribute("aria-pressed")!=="true";
+  e.currentTarget.setAttribute("aria-pressed",on); document.documentElement.dataset.contrast = on?"high":""; };
+$("#rd").onclick = e=>{ leer = e.currentTarget.getAttribute("aria-pressed")!=="true";
+  e.currentTarget.setAttribute("aria-pressed",leer); if(leer) hablar("Lectura en voz alta activada. Toca cualquier tarjeta para escucharla."); else try{speechSynthesis.cancel()}catch(e){} };
+
+/* Barra de progreso de lectura */
+addEventListener("scroll",()=>{ const h=document.documentElement; $("#prog").style.width = (h.scrollTop/(h.scrollHeight-h.clientHeight)*100||0)+"%"; },{passive:true});
+
+/* ===== HÉROE: burbuja de espacio personal ===== */
+const MSG = [[80,"Cerca: solo para personas de mucha confianza y cuando tú lo quieres."],[130,"Medio: para amistades y familia. Tú decides quién entra."],[999,"Amplio: necesitas distancia y está bien. Nadie debe invadirla."]];
+function burbuja(){ const v=+$("#rng").value; $("#bubble").setAttribute("r",v);
+  const m=MSG.find(x=>v<x[0]); $("#bubbleMsg").textContent=m[1]; }
+$("#rng").addEventListener("input",burbuja); $("#rng").addEventListener("change",()=>leer&&hablar($("#bubbleMsg").textContent)); burbuja();
+
+/* ===== SEMÁFORO: guarda las elecciones en memoria y arma la tarjeta personal ===== */
+const elecc = {};
+const NOM = {v:"Verde: me gusta",a:"Amarillo: pregúntame antes",r:"Rojo: no quiero"};
+SITUACIONES.forEach((s,i)=>{
+  const row = el("div",{className:"row"},`<span>${s}</span>`);
+  const o = el("div",{className:"opts",role:"group"}); o.setAttribute("aria-label",s);
+  ["v","a","r"].forEach(c=>{
+    const b = el("button",{className:"dot"},{v:"🟢 Sí",a:"🟡 Depende",r:"🔴 No"}[c]); b.dataset.c=c; b.setAttribute("aria-pressed","false");
+    b.onclick=()=>{ elecc[i]=c; [...o.children].forEach(x=>x.setAttribute("aria-pressed",x===b)); tarjeta(); leer&&hablar(s+". "+NOM[c]); };
+    o.append(b);
+  });
+  row.append(o); $("#sem").append(row);
+});
+function tarjeta(){
+  const l = Object.entries(elecc).map(([i,c])=>`<li>${SITUACIONES[i]}: <b>${NOM[c]}</b></li>`).join("");
+  $("#card").innerHTML = `<h3>Mi tarjeta de límites</h3><ul>${l}</ul><p>Puedes mostrarla a quien te acompaña. Y puedes cambiarla cuando quieras.</p>`;
+}
+
+/* ===== ACORDEÓN genérico (consentimiento y ética); aria-expanded para lectores de pantalla ===== */
+function acordeon(host,datos){
+  datos.forEach(([t,x])=>{
+    const h = el("button",{className:"h"},`<span>${t}</span><span aria-hidden="true">＋</span>`); h.setAttribute("aria-expanded","false");
+    const b = el("div",{className:"b"},`<div><p>${x}</p></div>`);
+    h.onclick=()=>{ const o=h.getAttribute("aria-expanded")!=="true"; h.setAttribute("aria-expanded",o); b.classList.toggle("open",o);
+      h.lastChild.textContent=o?"－":"＋"; if(o&&leer) hablar(t+". "+x); };
+    host.append(h,b);
+  });
+}
+acordeon($("#acc"),CONSENT); acordeon($("#eth"),ETICA);
+
+/* ===== FRASES: cada botón se ilumina y pronuncia su mensaje ===== */
+FRASES.forEach(([e,t])=>{
+  const b = el("button",{},`<span aria-hidden="true">${e}</span>${t}`);
+  b.onclick=()=>{ document.querySelectorAll("#say button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); hablar(t); };
+  $("#say").append(b);
+});
+
+/* ===== MITOS: tarjetas que giran ===== */
+MITOS.forEach(([m,r])=>{
+  const b = el("button",{className:"flip"},`<i><em class="f"><b>Mito</b>${m}</em><em class="k"><b>Realidad</b>${r}</em></i>`); b.setAttribute("aria-pressed","false");
+  b.onclick=()=>{ const on=b.getAttribute("aria-pressed")!=="true"; b.setAttribute("aria-pressed",on); if(on&&leer) hablar(r); };
+  $("#flips").append(b);
+});
+
+/* ===== QUIZ: una pregunta a la vez con retroalimentación inmediata ===== */
+let qi=0, pts=0;
+function pregunta(){
+  const box=$("#quizBox");
+  if(qi>=QUIZ.length){ box.innerHTML=`<h3>Terminaste: ${pts} de ${QUIZ.length} respuestas correctas</h3><p>Lo más importante: tu cuerpo es tuyo, tu decisión cuenta y el respeto es de todos.</p>`;
+    const r=el("button",{className:"btn"},"Intentar de nuevo"); r.onclick=()=>{qi=0;pts=0;pregunta()}; box.append(r); return; }
+  const [q,ops,ok,why]=QUIZ[qi];
+  box.innerHTML=`<h3>${q}</h3><div class="ops"></div><p class="fb" aria-live="polite"></p>`;
+  ops.forEach((t,i)=>{ const b=el("button",{},t);
+    b.onclick=()=>{ [...box.querySelectorAll(".ops button")].forEach((x,j)=>{x.disabled=true; if(j===ok)x.classList.add("ok")});
+      if(i===ok){pts++; b.classList.add("ok")} else b.classList.add("no");
+      $(".fb",box).textContent=(i===ok?"¡Correcto! ":"Casi. ")+why; leer&&hablar(why);
+      const n=el("button",{className:"btn ghost"},qi<QUIZ.length-1?"Siguiente":"Ver resultado"); n.onclick=()=>{qi++;pregunta()}; box.append(n); n.focus(); };
+    $(".ops",box).append(b); });
+}
+pregunta();
+
+/* ===== CONTENIDO AMPLIADO: se agrega a los acordeones con la misma función ===== */
+acordeon($("#acc"),[
+ ["¿Cuándo NO hay consentimiento?","Cuando hay miedo, amenazas, engaños, alcohol o drogas que quitan la capacidad de decidir, o cuando la persona no puede entender lo que ocurre. Tampoco cuando quien pide tiene poder sobre ti: cuidador, profesor, jefe o profesional de salud."],
+ ["Apoyos para decidir","Decidir con apoyo es válido: información en lectura fácil, pictogramas, más tiempo, una persona de confianza o un intérprete. El apoyo explica y acompaña, pero la decisión final es de quien decide."]
+]);
+acordeon($("#sal"),[
+ ["Mi cuerpo y sus partes","Conocer los nombres correctos de las partes del cuerpo ayuda a cuidarte y a contar si algo pasa. Hay partes privadas: solo tú decides quién las toca, y los exámenes médicos requieren explicación y tu permiso."],
+ ["Higiene e intimidad","Tienes derecho a un aseo respetuoso: con la puerta cerrada, avisando antes de cada paso y preguntando cómo prefieres que te ayuden. Puedes pedir que te apoye una persona de tu confianza."],
+ ["Autoconocimiento y privacidad","Conocer tu cuerpo y sentir placer son parte de la vida. Se hace en privado y nadie debe burlarse ni castigarte. Si necesitas apoyo, acude a un profesional de salud o de educación."],
+ ["Prevención y salud sexual","Los servicios de salud deben ser accesibles. Allí puedes informarte sobre métodos anticonceptivos, uso del condón, prevención de infecciones de transmisión sexual y controles ginecológicos o urológicos. Nadie puede obligarte a usar un método anticonceptivo ni a una esterilización sin tu consentimiento libre e informado."],
+ ["Ir a la consulta médica","Pide que te hablen a ti y no solo a quien te acompaña. Puedes llevar a alguien de confianza, pedir información en lenguaje claro, hacer todas las preguntas y negarte a un procedimiento."],
+ ["Embarazo, maternidad y paternidad","Las personas con discapacidad tienen derecho a decidir si desean tener hijos y a recibir apoyo para criarlos. La discapacidad no es razón para quitarles la decisión."]
+]);
+acordeon($("#dig"),[
+ ["Fotos y mensajes íntimos","Nadie puede obligarte a enviar fotos o videos íntimos. Lo que se envía puede copiarse y circular sin control. Compartir, o amenazar con compartir, imágenes íntimas de otra persona es violencia digital. Estos intercambios son solo entre personas adultas y con consentimiento."],
+ ["Privacidad y contraseñas","Tus contraseñas son tuyas. Una persona de confianza puede ayudarte a configurar la privacidad, pero no a controlar tus conversaciones."],
+ ["Conocer gente en línea","Desconfía de quien pide dinero, secretos o fotos muy pronto, o de quien te pide no contárselo a nadie. Antes de una cita, avisa a una persona de confianza y reúnanse en un lugar público."],
+ ["Si te chantajean o acosan","Guarda capturas de pantalla, no borres las pruebas, bloquea a la persona y cuéntalo a alguien de confianza. Puedes denunciar ante la Fiscalía (122)."]
+]);
+acordeon($("#sen"),[
+ ["¿Qué es la LSC?","La lengua de señas colombiana es la lengua propia de la comunidad sorda del país. No es una versión gestual del español. La Ley 324 de 1996 reconoce derechos de la población sorda, y la Ley 982 de 2005 busca equiparar oportunidades para personas sordas y sordociegas, incluido el acceso a servicios de interpretación."],
+ ["Intérprete profesional, no un familiar","Para temas íntimos o de salud sexual, la persona sorda tiene derecho a un intérprete profesional que guarde confidencialidad. Evita usar a un familiar, a la pareja o al cuidador como intérprete."],
+ ["Consentimiento visual","Busca contacto visual antes de comunicarte. Da tiempo para ver, entender y responder. Quien no responde con señas o gestos no está diciendo sí. Confirma con claridad y, si hace falta, por escrito o con pictogramas."],
+ ["Personas sordociegas","Antes de tocar para comunicar, avisa con una señal acordada y pide permiso. El contacto es el canal de comunicación: debe ser claro, respetuoso y nunca usarse con otros fines. Cada persona tiene su propio sistema (señas táctiles, braille, dispositivos)."],
+ ["Información accesible para todas las personas","Subtítulos, lectura fácil, pictogramas, audio, braille y lengua de señas hacen inclusiva la educación sexual. Si un material no es accesible para alguien, el problema es del material, no de la persona."]
+]);
+acordeon($("#eth"),[
+ ["Capacidad legal y apoyos","En Colombia, la Ley 1996 de 2019 reconoce que las personas con discapacidad mayores de edad tienen capacidad legal en igualdad de condiciones y pueden contar con apoyos para decidir. Ya no se parte de que otra persona deba decidir por ellas."],
+ ["Poder, cuidado y límites","Quien cuida, enseña o atiende tiene poder sobre la persona. Esa diferencia exige más cuidado: ninguna relación íntima es válida si se apoya en ese poder o en la dependencia."],
+ ["Diversidad y múltiples barreras","Mujeres, personas LGBTIQ+, indígenas o afrodescendientes con discapacidad pueden enfrentar varias formas de discriminación a la vez. La inclusión real reconoce todas esas identidades."],
+ ["Responsabilidad de familias e instituciones","Familias, colegios y centros de apoyo deben informar, acompañar y proteger sin infantilizar ni controlar. Educar en sexualidad es prevenir abusos."]
+]);
+
+/* ===== TARJETAS VISUALES A PANTALLA COMPLETA (útiles para personas sordas) ===== */
+const VIS=[["✋","PAUSA","--c4"],["🚫","NO","--c3"],["✅","SÍ","--c2"],["❓","NO ENTIENDO","--c5"],["🆘","NECESITO AYUDA","--c3"],["✍️","ESCRÍBEME","--c6"]];
+VIS.forEach(([e,t,c])=>{
+  const b=el("button",{},`<span aria-hidden="true">${e}</span>${t}`);
+  b.onclick=()=>{ const g=$("#big"); g.style.background=`var(${c})`;
+    g.innerHTML=`<div style="font-size:min(35vw,16rem)" aria-hidden="true">${e}</div><div style="font-size:clamp(2rem,9vw,5rem);font-weight:800">${t}</div><div style="font-size:1rem">Toca para cerrar</div>`;
+    g.hidden=false; g.focus(); leer&&hablar(t); };
+  $("#vis").append(b);
+});
+$("#big").onclick=()=>{ $("#big").hidden=true; };
+addEventListener("keydown",e=>{ if(e.key==="Escape") $("#big").hidden=true; });
+
+/* ===== LECTURA COMPLETA: recorre TODO el contenido visible en orden, resaltando cada bloque ===== */
+let cola=[], pos=0, estado="stop", token=0, tasa=1, vi=0;
+const VEL=[1,1.25,.8];
+/* Reúne todos los bloques de texto (títulos, párrafos, listas, tarjetas, acordeones, quiz) */
+function recolectar(){
+  return [...document.querySelectorAll("main h1,main h2,main h3,main p,main li,main label,.acc button.h>span:first-child,.flip em,.sem .row>span,.q .ops button,.fb")]
+    .filter(n=>n.textContent.trim() && !n.closest("[hidden]"));
+}
+function texto(n){ return n.matches(".flip em") ? n.firstChild.textContent+". "+n.lastChild.textContent : n.textContent.trim(); }
+function ui(){
+  $("#lt").textContent = estado==="play"?"⏸ Pausar":estado==="pausa"?"▶ Continuar":"▶ Leer todo";
+  $("#ls").hidden = estado==="stop";
+}
+function parar(){ estado="stop"; token++; try{speechSynthesis.cancel()}catch(e){}
+  document.querySelectorAll(".leyendo").forEach(n=>n.classList.remove("leyendo")); ui(); }
+function leerDesde(i){
+  if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel(); speechSynthesis.resume();
+  cola=recolectar(); pos=i; estado="play"; ui(); sigue();
+}
+function sigue(){
+  document.querySelectorAll(".leyendo").forEach(n=>n.classList.remove("leyendo"));
+  if(pos>=cola.length){ parar(); return; }
+  const n=cola[pos];
+  /* Abre acordeones y gira tarjetas para que lo que se lee sea visible */
+  const b=n.closest(".b");
+  if(b&&!b.classList.contains("open")){ b.classList.add("open"); const h=b.previousElementSibling; h.setAttribute("aria-expanded","true"); h.lastChild.textContent="－"; }
+  const fl=n.closest(".flip"); if(fl) fl.setAttribute("aria-pressed",n.classList.contains("k"));
+  n.classList.add("leyendo");
+  n.scrollIntoView({block:"center",behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"});
+  const u=new SpeechSynthesisUtterance(texto(n)); u.lang="es-CO"; u.rate=tasa;
+  const tk=++token; /* el token evita que una lectura cancelada avance la cola */
+  u.onend=()=>{ if(tk===token && estado==="play"){ pos++; sigue(); } };
+  speechSynthesis.speak(u);
+}
+$("#lt").onclick=()=>{
+  if(estado==="stop") return leerDesde(0);
+  if(estado==="play"){ speechSynthesis.pause(); estado="pausa"; } else { speechSynthesis.resume(); estado="play"; }
+  ui();
+};
+$("#ls").onclick=parar;
+$("#lv").onclick=()=>{ vi=(vi+1)%VEL.length; tasa=VEL[vi]; $("#lv").textContent="Velocidad "+tasa+"×"; if(estado==="play") leerDesde(pos); };
+/* Con “Leer al tocar” activo, tocar cualquier texto lo lee y continúa desde ahí */
+document.addEventListener("click",e=>{
+  if(!leer || e.target.closest("button")) return;
+  const n=e.target.closest("main h1,main h2,main h3,main p,main li");
+  if(n){ const i=recolectar().indexOf(n); if(i>=0) leerDesde(i); }
+});
+
+/* ===== BURBUJAS DE LA PORTADA: se generan con tamaño, posición y velocidad aleatorios ===== */
+const bb=$("#bubbles"), COL=["--c1","--c2","--c3","--c4","--c5"];
+function altoBurbujas(){ bb.style.setProperty("--h",($("#cuerpo").offsetHeight+250)+"px"); } /* distancia que recorre cada burbuja */
+for(let i=0;i<16;i++){
+  const d=40+Math.random()*110, s=document.createElement("span");
+  /* delay negativo: las burbujas ya están repartidas desde que carga la página */
+  s.style.cssText=`width:${d}px;height:${d}px;left:${Math.random()*100}%;--b:var(${COL[i%5]});--dx:${(Math.random()-.5)*160}px;animation-duration:${12+Math.random()*16}s;animation-delay:-${Math.random()*20}s`;
+  bb.append(s);
+}
+altoBurbujas(); addEventListener("load",altoBurbujas); addEventListener("resize",altoBurbujas);
+
+/* ===== ESPACIOS PARA IMÁGENES: si el archivo no existe, se muestra la guía de qué imagen poner ===== */
+document.querySelectorAll(".slot").forEach(s=>{
+  const {src,alt,idea}=s.dataset;
+  s.innerHTML=`<img src="${src}" alt="${alt}"><div class="ph" aria-hidden="true"><b>Aquí va una imagen</b><span>${idea}</span><code>${src}</code></div>`;
+  s.firstChild.onerror=()=>s.classList.add("vacio");
+});
+
+/* ===== GLOSARIO ===== */
+acordeon($("#glo"),[
+ ["Autonomía","Capacidad de decidir sobre tu propia vida, tu cuerpo y tus relaciones."],
+ ["Consentimiento","Acuerdo libre, informado, entusiasta, específico y reversible."],
+ ["Apoyos","Ayudas para entender, comunicarse y decidir. Acompañan, no deciden por ti."],
+ ["Capacidad legal","Reconocimiento de que toda persona adulta puede decidir y actuar legalmente, con apoyos si los necesita."],
+ ["Accesibilidad","Que la información, los lugares y los servicios puedan ser usados por todas las personas."],
+ ["Lectura fácil","Textos con frases cortas, palabras sencillas e imágenes que ayudan a entender."],
+ ["Intimidad","Lo privado de tu cuerpo, tus afectos y tus mensajes, que nadie debe invadir."],
+ ["Violencia sexual","Cualquier acto sexual sin consentimiento libre: tocamientos, presión, chantaje, exhibición o difusión de imágenes íntimas."]
+]);
+
+/* ===== MI COMPROMISO: casillas con contador y celebración al completarlas ===== */
+const COMP=["Decido sobre mi cuerpo y pido apoyo cuando lo necesito.","Pregunto antes de tocar a alguien o sus cosas.","Respeto un no, una pausa o un cambio de idea.","Cuento a alguien de confianza si algo me incomoda.","Cuido mi privacidad y la de los demás en internet.","Comparto lo aprendido con mi familia, mis amistades y mi comunidad."];
+let hechos=0;
+COMP.forEach(t=>{
+  const l=el("label",{className:"chk"},`<input type="checkbox"><span>${t}</span>`);
+  l.firstChild.onchange=e=>{ hechos+=e.target.checked?1:-1;
+    $("#compMsg").textContent = hechos===COMP.length ? "¡Lo lograste! Tu cuerpo es tuyo, tu voz cuenta y el respeto es de todos." : `Llevas ${hechos} de ${COMP.length} compromisos.`;
+    if(hechos===COMP.length) fiesta(); };
+  $("#comp").append(l);
+});
+function fiesta(){ /* confeti; se omite si la persona prefiere menos movimiento */
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  for(let i=0;i<36;i++){ const c=document.createElement("i"); c.className="cf";
+    c.style.cssText=`left:${Math.random()*100}vw;background:var(--c${1+i%6});animation-delay:${Math.random()*.6}s`;
+    document.body.append(c); setTimeout(()=>c.remove(),2800); }
+}
+
+/* ===== ÍNDICE DE CAPÍTULOS (se arma solo con los títulos h2) + capítulo activo ===== */
+const idx=$("#idx");
+document.querySelectorAll("main section").forEach(sec=>{
+  const h=sec.querySelector("h2"); if(!h) return;
+  idx.append(el("a",{href:"#"+sec.id},h.textContent));
+});
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting) idx.querySelectorAll("a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+e.target.id));
+}),{rootMargin:"-45% 0px -50% 0px"});
+document.querySelectorAll("main section").forEach(x=>io.observe(x));
+
+/* ===== VOLVER ARRIBA ===== */
+const up=$("#up");
+addEventListener("scroll",()=>{ up.hidden=scrollY<700; },{passive:true});
+up.onclick=()=>scrollTo({top:0});
+</script>
+</body>
+</html>
